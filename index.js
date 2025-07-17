@@ -10,6 +10,19 @@ const account1 = {
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2020-04-01T10:17:24.185Z',
+    '2020-05-08T14:11:59.604Z',
+    '2020-05-27T17:01:17.194Z',
+    '2020-07-11T23:36:17.929Z',
+    '2020-07-12T10:51:36.790Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT', // de-DE
 };
 
 const account2 = {
@@ -17,6 +30,19 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
 };
 
 const account3 = {
@@ -123,16 +149,44 @@ const updateUI = function(acc){
     calcDisplaySummaryIn(currentAccount);
 };
 
+const starLogOutTimer = function(){
+  const tick = function(){
+   const min = String(Math.trunc(time/60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2 , 0);
+
+    //In each call print the remaining time to UI
+    labelTimer.textContent = `${min}:${sec}`;
+   
+    //when 0 seconds,stop timer and log out user
+    if(time === 0){
+    clearInterval(timer);
+    labelWelcome.textContent = `Login to get started`;
+    containerApp.style.opacity = 0;
+  }
+
+   //Decrease 1s
+    time--;
+  
+  }
+  //set time to be 5 minutes
+  let time = 120
+
+  //call the time every second
+  tick();
+  const timer= setInterval(tick, 1000);
+
+  return timer;
+}
 
 // Event handler
- let currentAccount;
+ let currentAccount, timer;
 
  btnLogin.addEventListener('click', function(e){
   e.preventDefault();
 
   currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value);
   console.log(currentAccount);
-  if(currentAccount?.pin === Number(inputLoginPin.value)){
+  if(currentAccount?.pin === +inputLoginPin.value){
     //Dispaly UI and Message
     labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split( ' ')[0]}`;
     containerApp.style.opacity = 100;
@@ -140,6 +194,9 @@ const updateUI = function(acc){
     inputLoginPin.value = inputLoginUsername.value = '';
     inputLoginPin.blur();
 
+    //Timer
+    if(timer)clearInterval(timer);
+    timer = starLogOutTimer();
     //update UI
     updateUI(currentAccount);
 
@@ -149,7 +206,7 @@ const updateUI = function(acc){
 
  btnTransfer.addEventListener('click' , function(e){
   e.preventDefault ();
-  const amount = Number(inputTransferAmount.value);
+  const amount = +inputTransferAmount.value;
   const recieverAcc = accounts.find(
     acc => acc.username === inputTransferTo.value);
 
@@ -168,6 +225,10 @@ const updateUI = function(acc){
 
         //update UI
         updateUI(currentAccount);
+        //Reset timer
+       clearInterval (timer);
+       timer = starLogOutTimer();
+
       };
  });
 
@@ -175,15 +236,20 @@ const updateUI = function(acc){
  btnLoan.addEventListener('click', function(e){
   e.preventDefault();
 
-   const amount = Number(inputLoanAmount.value);
+   const amount = +inputLoanAmount.value;
    if(amount > 0 && currentAccount.movements.some( mov=> mov >= amount * 0.1)){
-       //Add A positive movements to the current account
+       setTimeout(function() {//Add A positive movements to the current account
 
        currentAccount.movements.push(amount);
 
        //Update the UI
 
        updateUI(currentAccount);
+
+       //Reset timer
+       clearInterval (timer);
+       timer = starLogOutTimer()}, 2000);
+
    };
    inputLoanAmount.value = '';
  });
@@ -192,7 +258,7 @@ const updateUI = function(acc){
   e.preventDefault();
 
   
-  if(inputCloseUsername.value === currentAccount.username && Number(inputClosePin.value )=== currentAccount.pin){
+  if(inputCloseUsername.value === currentAccount.username && +inputClosePin.value === currentAccount.pin){
     const index = accounts.findIndex(acc => acc.username === currentAccount.username);
 
     console.log(index);
@@ -214,5 +280,9 @@ const updateUI = function(acc){
 
 
 
+const x = Number.parseFloat('2.5rem');
+const y = Math.sqrt(25);
+console.log(x , y);
 
-
+const date = new Date();
+console.log(date);
